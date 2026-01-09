@@ -1,0 +1,11 @@
+<!doctype html>
+<title>小留言板</title>
+<form method="post">
+  说点什么：<input name="words">
+  <button>提交</button>
+</form>
+<ul>
+  {% for m in messages %}
+    <li>{{ m.body }}</li>
+  {% endfor %}
+</ul>
