@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管道宏观检查记录表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Microsoft YaHei", "SimHei", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(100, 200, 255, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .header-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            color: #a0a0a0;
+            font-weight: 500;
+        }
+
+        input[type="text"], input[type="date"], textarea {
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"], .short-input {
+            padding: 8px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            max-width: 150px;
+            text-align: center;
+            font-family: "Courier New", monospace;
+        }
+
+        input[type="text"]:focus, input[type="date"]:focus, textarea:focus,
+        input[type="number"]:focus, .short-input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+        }
+
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .check-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .check-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateX(5px);
+        }
+
+        .item-header {
+            font-weight: bold;
+            color: #4fc3f7;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .item-number {
+            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+            color: #1a1a2e;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .sub-items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-left: 38px;
+        }
+
+        .sub-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .sub-item-label {
+            color: #c0c0c0;
+            font-size: 14px;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .options {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .radio-option, .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .radio-option:hover, .checkbox-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .radio-option input[type="radio"], .checkbox-option input[type="checkbox"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid #666;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .radio-option input[type="radio"] {
+            border-radius: 50%;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            border-radius: 4px;
+        }
+
+        .radio-option input[type="radio"]:checked, .checkbox-option input[type="checkbox"]:checked {
+            border-color: #4fc3f7;
+            background: rgba(79, 195, 247, 0.2);
+        }
+
+        .radio-option input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: #4fc3f7;
+            border-radius: 50%;
+        }
+
+        .checkbox-option input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #4fc3f7;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .radio-option span, .checkbox-option span {
+            font-size: 13px;
+            color: #a0a0a0;
+        }
+
+        .radio-option input[type="radio"]:checked + span,
+        .checkbox-option input[type="checkbox"]:checked + span {
+            color: #4fc3f7;
+            font-weight: 500;
+        }
+
+        .input-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-inline input[type="text"] {
+            width: 120px;
+            padding: 6px 10px;
+        }
+
+        .unit {
+            color: #888;
+            font-size: 12px;
+        }
+
+        .footer-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 只读输入框样式 */
+        input[readonly] {
+            background: rgba(79, 195, 247, 0.1);
+            border-color: rgba(79, 195, 247, 0.3);
+            color: #4fc3f7;
+            cursor: default;
+        }
+
+        input[readonly]:focus {
+            box-shadow: none;
+            border-color: rgba(79, 195, 247, 0.3);
+        }
+
+        /* 自动匹配提示样式 */
+        .match-hint {
+            font-size: 12px;
+            color: #4fc3f7;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .match-hint.show {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header-section, .footer-section {
+                grid-template-columns: 1fr;
+            }
+
+            .sub-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .options {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+    </style>
+    <base target="_blank">
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <h1>管道宏观检查记录</h1>
+
+        <div class="header-section">
+            <div class="form-group">
+                <label>管道名称 <span class="match-hint" id="name-hint">✓ 已匹配</span></label>
+                <input type="text" name="pipeline_name" id="pipeline_name" placeholder="请输入管道名称" list="pipeline_names" autocomplete="off">
+                <datalist id="pipeline_names">
+                    <option value="唐昌镇学府路中压燃气干管">
+                    <option value="唐昌镇柏木河村气源管道">
+                    <option value="唐昌镇金星村长林食品厂中压燃气干管">
+                    <option value="唐昌镇竹林村中压气源管道">
+                    <option value="唐昌南北街中压干管">
+                    <option value="东方红路中压干管">
+                    <option value="唐元开发区中压干管">
+                    <option value="唐太路北延线道路长林村段中压燃气管道">
+                    <option value="新民场环城路干管、新民场环城干管一期">
+                    <option value="古城镇蜀汉南街中压燃气干管、古城镇蜀韵街中压燃气管线">
+                    <option value="古城水梨村中压燃气干管">
+                    <option value="新民场镇城区中压燃气主干管">
+                    <option value="新民场镇永盛村中压燃气干管">
+                    <option value="新民场镇花卉园规划区中压干管">
+                    <option value="古城中平村中压干管">
+                    <option value="古城中平村-花牌村中压燃气干管">
+                    <option value="古城八角村中压燃气干管">
+                    <option value="郫都区唐昌镇先锋村气源管道">
+                    <option value="唐昌镇福昌村工业园中压燃气干管">
+                    <option value="唐昌镇钓鱼村气源管线">
+                    <option value="唐昌镇战旗村唐宝路中压燃气干管">
+                    <option value="天星锦宁中压燃气管道">
+                    <option value="云凌草堂中压燃气管道">
+                    <option value="古城金德荣模具厂干管">
+                    <option value="古城蜀韵街至蓉晶公馆">
+                    <option value="古城邻城村新气站-蜀汉西路">
+                    <option value="古城尚河景小区至锦水河">
+                    <option value="古城金山角至金石门业">
+                    <option value="古城幼儿园干管">
+                    <option value="古城梓潼巷至荣华北巷">
+                    <option value="古城锦城家园干管">
+                    <option value="古城雄飞上院至元皓科技">
+                    <option value="唐昌镇战旗村吕家院子气源管道">
+                    <option value="新民场治平街">
+                    <option value="唐元沙西线口至新民场环城路口">
+                    <option value="唐元千夫村干管">
+                    <option value="唐昌西北路至西北村干管">
+                    <option value="唐昌平乐村干管至汇菇源干管">
+                    <option value="唐昌战旗香镜干管（唐昌镇战旗村沙西线战旗路口中压燃气管道工程）">
+                    <option value="战旗村调压柜至宏博文化">
+                    <option value="唐昌鸣凤一二五组干管">
+                    <option value="唐昌镇东西干道中压燃气干管">
+                    <option value="唐昌丁字街至建丰村幼儿园">
+                    <option value="唐昌先锋村干管（与彭温路平行）">
+                    <option value="四川蓉城第二绕城高速公路开发有限责任公司公共燃气工程">
+                    <option value="唐昌镇东街中压干管">
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label>管道编号 <span class="match-hint" id="no-hint">✓ 已匹配</span></label>
+                <input type="text" name="pipeline_no" id="pipeline_no" placeholder="请输入管道编号" list="pipeline_numbers" autocomplete="off">
+                <datalist id="pipeline_numbers">
+                    <option value="5">
+                    <option value="7">
+                    <option value="8">
+                    <option value="9">
+                    <option value="10">
+                    <option value="14">
+                    <option value="15">
+                    <option value="17">
+                    <option value="18">
+                    <option value="19">
+                    <option value="20">
+                    <option value="21">
+                    <option value="26">
+                    <option value="27">
+                    <option value="28">
+                    <option value="29">
+                    <option value="32">
+                    <option value="33">
+                    <option value="34">
+                    <option value="47">
+                    <option value="48">
+                    <option value="49">
+                    <option value="52">
+                    <option value="53">
+                    <option value="61">
+                    <option value="62">
+                    <option value="63">
+                    <option value="64">
+                    <option value="65">
+                    <option value="66">
+                    <option value="67">
+                    <option value="68">
+                    <option value="69">
+                    <option value="71">
+                    <option value="72">
+                    <option value="73">
+                    <option value="74">
+                    <option value="75">
+                    <option value="76">
+                    <option value="77">
+                    <option value="78">
+                    <option value="80">
+                    <option value="83">
+                    <option value="86">
+                    <option value="22、23">
+                    <option value="24、25">
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label>检验人员</label>
+                <input type="text" name="inspector" id="inspector" placeholder="请输入检验人员姓名">
+            </div>
+            <div class="form-group">
+                <label>检验日期</label>
+                <input type="date" name="inspection_date" id="inspection_date">
+            </div>
+        </div>
+
+        <div class="checklist">
+            <!-- 0. 地址信息 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">0</span>
+                    <span>地址信息</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">详细地址</span>
+                        <div class="options" style="flex: 1;">
+                            <input type="text" name="address" id="address" placeholder="请输入管道所在地址" style="width: 100%; max-width: 500px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 1. 位置与走向 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">1</span>
+                    <span>位置与走向</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">管道位置</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="管道位置" id="管道位置" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="管道位置" id="管道位置" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="管道位置_备注" id="管道位置_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">管道埋深</span>
+                        <div class="options">
+                            <label class="input-inline">
+                                <input type="number" name="埋深数值" id="埋深数值" placeholder="埋深值" step="0.01">
+                                <span class="unit">m</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="管道埋深" id="管道埋深" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="管道埋深" id="管道埋深" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="管道埋深_备注" id="管道埋深_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">管道走向</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="管道走向" id="管道走向" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="管道走向" id="管道走向" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="管道走向_备注" id="管道走向_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 管道沿线环境调查 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">2</span>
+                    <span>管道沿线环境调查</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">与其他建（构）筑物的净距</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="净距" id="净距" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="净距" id="净距" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="净距_备注" id="净距_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">占压状况</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="占压状况" id="占压状况" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="占压状况" id="占压状况" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="占压状况_备注" id="占压状况_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">管道裸露</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="管道裸露" id="管道裸露" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="管道裸露" id="管道裸露" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="管道裸露_备注" id="管道裸露_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">土壤扰动</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="土壤扰动" id="土壤扰动" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="土壤扰动" id="土壤扰动" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="土壤扰动_备注" id="土壤扰动_备注" placeholder="备注" list="soil-disturbance-options" autocomplete="off">
+                                <datalist id="soil-disturbance-options">
+                                    <option value="深根植物伴行">
+                                </datalist>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. 地面泄漏情况 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">3</span>
+                    <span>地面泄漏情况</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">泄漏</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="泄漏" id="泄漏" value="无">
+                                <span>无</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="泄漏" id="泄漏" value="有">
+                                <span>有</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="number" name="最大浓度" id="最大浓度" placeholder="0.0" step="0.1">
+                                <span class="unit">%LEL</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="泄漏_备注" id="泄漏_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. 地面标志 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">4</span>
+                    <span>地面标志</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">标志状态</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="标志状态" id="标志状态" value="完好">
+                                <span>完好</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="标志状态" id="标志状态" value="损坏">
+                                <span>损坏</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="标志状态" id="标志状态" value="缺失">
+                                <span>缺失</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="标志状态" id="标志状态" value="无标志">
+                                <span>无标志</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="标志状态_备注" id="标志状态_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. 阀门井检查 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">5</span>
+                    <span>阀门井检查</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">井内管道深度</span>
+                        <div class="options">
+                            <label class="input-inline">
+                                <input type="number" name="井内管道深度" id="井内管道深度" placeholder="深度值" step="0.01">
+                                <span class="unit">m</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">阀门井状态（可多选）</span>
+                        <div class="options">
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="阀门井状态选项" id="阀门井状态选项_井盖无法打开" value="井盖无法打开" onchange="updateValveStatus()">
+                                <span>井盖无法打开</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="阀门井状态选项" id="阀门井状态选项_被占压或遗失" value="被占压或遗失" onchange="updateValveStatus()">
+                                <span>被占压或遗失</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="阀门井状态选项" id="阀门井状态选项_井内被掩埋" value="井内被掩埋" onchange="updateValveStatus()">
+                                <span>井内被掩埋</span>
+                            </label>
+                            <label class="checkbox-option">
+                                <input type="checkbox" name="阀门井状态选项" id="阀门井状态选项_井内水淹" value="井内水淹" onchange="updateValveStatus()">
+                                <span>井内水淹</span>
+                            </label>
+                            <input type="hidden" name="阀门井状态" id="阀门井状态">
+                            <label class="input-inline">
+                                <input type="text" name="阀门井_备注" id="阀门井_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. 管道穿越管段 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">6</span>
+                    <span>管道穿越管段</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">穿越长度</span>
+                        <div class="options">
+                            <label class="input-inline">
+                                <input type="number" name="穿越长度" id="穿越长度" placeholder="穿越长度" step="1">
+                                <span class="unit">m</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">锚固墩、套管检查孔</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="锚固墩" id="锚固墩" value="完好">
+                                <span>完好</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="锚固墩" id="锚固墩" value="损坏">
+                                <span>损坏</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="锚固墩" id="锚固墩" value="缺失">
+                                <span>缺失</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="锚固墩_备注" id="锚固墩_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">河流冲刷侵蚀情况</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="河流冲刷" id="河流冲刷" value="无">
+                                <span>无</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="河流冲刷" id="河流冲刷" value="有">
+                                <span>有</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="河流冲刷_备注" id="河流冲刷_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. 管道跨越管段 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">7</span>
+                    <span>管道跨越管段</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">跨越长度</span>
+                        <div class="options">
+                            <label class="input-inline">
+                                <input type="number" name="跨越长度" id="跨越长度" placeholder="跨越长度" step="1">
+                                <span class="unit">m</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">防腐（保温）层情况、补偿器</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="防腐层" id="防腐层" value="完好">
+                                <span>完好</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="防腐层" id="防腐层" value="损坏">
+                                <span>损坏</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="防腐层_备注" id="防腐层_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">钢结构及其连接件等腐蚀情况</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="钢结构腐蚀" id="钢结构腐蚀" value="无">
+                                <span>无</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="钢结构腐蚀" id="钢结构腐蚀" value="有">
+                                <span>有</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="钢结构腐蚀_备注" id="钢结构腐蚀_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. 阀门、法兰、补偿器、钢塑转换接头等管道元件检查 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">8</span>
+                    <span>阀门、法兰、补偿器、钢塑转换接头等管道元件检查</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">元件状态</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="元件状态" id="元件状态" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="元件状态" id="元件状态" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="元件状态_备注" id="元件状态_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. 凝水缸检查 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">9</span>
+                    <span>凝水缸检查</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">凝水缸状态</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="凝水缸" id="凝水缸" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="凝水缸" id="凝水缸" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="凝水缸_备注" id="凝水缸_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 10. 杂散电流情况 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">10</span>
+                    <span>杂散电流情况</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">杂散电流</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="杂散电流" id="杂散电流" value="无">
+                                <span>无</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="杂散电流" id="杂散电流" value="有">
+                                <span>有</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="杂散电流_备注" id="杂散电流_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 11. 阴极保护系统运行状况 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">11</span>
+                    <span>阴极保护系统运行状况</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">运行状态</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="阴极保护" id="阴极保护" value="良好">
+                                <span>良好</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="阴极保护" id="阴极保护" value="异常">
+                                <span>异常</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="阴极保护_备注" id="阴极保护_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 12. 电性能测试 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">12</span>
+                    <span>电性能测试</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">电绝缘装置</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="电绝缘装置" id="电绝缘装置" value="完好">
+                                <span>完好</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="电绝缘装置" id="电绝缘装置" value="损坏">
+                                <span>损坏</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="电绝缘装置_备注" id="电绝缘装置_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="sub-item">
+                        <span class="sub-item-label">电连续性能</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="电连续性能" id="电连续性能" value="完好">
+                                <span>完好</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="电连续性能" id="电连续性能" value="损坏">
+                                <span>损坏</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="电连续性能_备注" id="电连续性能_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 13. 安全附件和仪表 -->
+            <div class="check-item">
+                <div class="item-header">
+                    <span class="item-number">13</span>
+                    <span>安全附件和仪表</span>
+                </div>
+                <div class="sub-items">
+                    <div class="sub-item">
+                        <span class="sub-item-label">附件仪表状态</span>
+                        <div class="options">
+                            <label class="radio-option">
+                                <input type="radio" name="安全附件" id="安全附件" value="符合">
+                                <span>符合</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="安全附件" id="安全附件" value="不符合">
+                                <span>不符合</span>
+                            </label>
+                            <label class="input-inline">
+                                <input type="text" name="安全附件_备注" id="安全附件_备注" placeholder="备注">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-section">
+            <div class="form-group">
+                <label>审核人员</label>
+                <input type="text" name="reviewer" id="reviewer" placeholder="请输入审核人员姓名">
+            </div>
+            <div class="form-group">
+                <label>审核日期</label>
+                <input type="date" name="review_date" id="review_date">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 管道数据映射表（编号 -> 名称）
+        const pipelineData = {
+        "10": "唐昌镇学府路中压燃气干管",
+        "14": "唐昌镇柏木河村气源管道",
+        "15": "唐昌镇金星村长林食品厂中压燃气干管",
+        "17": "唐昌镇竹林村中压气源管道",
+        "18": "唐昌南北街中压干管",
+        "19": "东方红路中压干管",
+        "20": "唐元开发区中压干管",
+        "21": "唐太路北延线道路长林村段中压燃气管道",
+        "22、23": "新民场环城路干管、新民场环城干管一期",
+        "24、25": "古城镇蜀汉南街中压燃气干管、古城镇蜀韵街中压燃气管线",
+        "26": "古城水梨村中压燃气干管",
+        "27": "新民场镇城区中压燃气主干管",
+        "28": "新民场镇永盛村中压燃气干管",
+        "29": "新民场镇花卉园规划区中压干管",
+        "32": "古城中平村中压干管",
+        "33": "古城中平村-花牌村中压燃气干管",
+        "34": "古城八角村中压燃气干管",
+        "47": "郫都区唐昌镇先锋村气源管道",
+        "48": "唐昌镇福昌村工业园中压燃气干管",
+        "49": "唐昌镇钓鱼村气源管线",
+        "5": "唐昌镇战旗村唐宝路中压燃气干管",
+        "52": "天星锦宁中压燃气管道",
+        "53": "云凌草堂中压燃气管道",
+        "61": "古城金德荣模具厂干管",
+        "62": "古城蜀韵街至蓉晶公馆",
+        "63": "古城邻城村新气站-蜀汉西路",
+        "64": "古城尚河景小区至锦水河",
+        "65": "古城金山角至金石门业",
+        "66": "古城幼儿园干管",
+        "67": "古城梓潼巷至荣华北巷",
+        "68": "古城锦城家园干管",
+        "69": "古城雄飞上院至元皓科技",
+        "7": "唐昌镇战旗村吕家院子气源管道",
+        "71": "新民场治平街",
+        "72": "唐元沙西线口至新民场环城路口",
+        "73": "唐元千夫村干管",
+        "74": "唐昌西北路至西北村干管",
+        "75": "唐昌平乐村干管至汇菇源干管",
+        "76": "唐昌战旗香镜干管（唐昌镇战旗村沙西线战旗路口中压燃气管道工程）",
+        "77": "战旗村调压柜至宏博文化",
+        "78": "唐昌鸣凤一二五组干管",
+        "8": "唐昌镇东西干道中压燃气干管",
+        "80": "唐昌丁字街至建丰村幼儿园",
+        "83": "唐昌先锋村干管（与彭温路平行）",
+        "86": "四川蓉城第二绕城高速公路开发有限责任公司公共燃气工程",
+        "9": "唐昌镇东街中压干管"
+};
+
+        // 创建反向映射（名称 -> 编号）
+        const nameToNo = {};
+        for (const [no, name] of Object.entries(pipelineData)) {
+            nameToNo[name] = no;
+        }
+
+        // 获取DOM元素
+        const noInput = document.getElementById('pipeline_no');
+        const nameInput = document.getElementById('pipeline_name');
+        const noHint = document.getElementById('no-hint');
+        const nameHint = document.getElementById('name-hint');
+
+        // 显示/隐藏匹配提示
+        function showHint(element, show) {
+            if (show) {
+                element.classList.add('show');
+            } else {
+                element.classList.remove('show');
+            }
+        }
+
+        // 监听编号输入变化
+        noInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            if (pipelineData[value]) {
+                // 如果输入的编号存在，自动填充名称
+                nameInput.value = pipelineData[value];
+                showHint(noHint, true);
+                showHint(nameHint, true);
+            } else {
+                showHint(noHint, false);
+                // 如果名称不匹配任何编号，隐藏名称提示
+                if (!nameToNo[nameInput.value.trim()]) {
+                    showHint(nameHint, false);
+                }
+            }
+        });
+
+        // 监听名称输入变化
+        nameInput.addEventListener('input', function() {
+            const value = this.value.trim();
+            if (nameToNo[value]) {
+                // 如果输入的名称存在，自动填充编号
+                noInput.value = nameToNo[value];
+                showHint(nameHint, true);
+                showHint(noHint, true);
+            } else {
+                showHint(nameHint, false);
+                // 如果编号不匹配任何名称，隐藏编号提示
+                if (!pipelineData[noInput.value.trim()]) {
+                    showHint(noHint, false);
+                }
+            }
+        });
+
+        // 监听change事件（当用户从datalist选择时）
+        noInput.addEventListener('change', function() {
+            const value = this.value.trim();
+            if (pipelineData[value]) {
+                nameInput.value = pipelineData[value];
+                showHint(noHint, true);
+                showHint(nameHint, true);
+            }
+        });
+
+        nameInput.addEventListener('change', function() {
+            const value = this.value.trim();
+            if (nameToNo[value]) {
+                noInput.value = nameToNo[value];
+                showHint(nameHint, true);
+                showHint(noHint, true);
+            }
+        });
+
+        // 阀门井状态更新函数
+        function updateValveStatus() {
+            const checkboxes = document.querySelectorAll('input[name="阀门井状态选项"]:checked');
+            const selectedValues = Array.from(checkboxes).map(cb => cb.value);
+            const resultInput = document.getElementById('阀门井状态');
+
+            if (selectedValues.length === 0) {
+                resultInput.value = '';
+            } else {
+                resultInput.value = selectedValues.join(',');
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期为今天
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('inspection_date').value = today;
+        });
+    </script>
+</body>
+</html>
