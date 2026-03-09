@@ -328,104 +328,14 @@
                 <label>管道名称 <span class="match-hint" id="name-hint">✓ 已匹配</span></label>
                 <input type="text" name="pipeline_name" id="pipeline_name" placeholder="请输入管道名称" list="pipeline_names" autocomplete="off">
                 <datalist id="pipeline_names">
-                    <option value="唐昌镇学府路中压燃气干管">
-                    <option value="唐昌镇柏木河村气源管道">
-                    <option value="唐昌镇金星村长林食品厂中压燃气干管">
-                    <option value="唐昌镇竹林村中压气源管道">
-                    <option value="唐昌南北街中压干管">
-                    <option value="东方红路中压干管">
-                    <option value="唐元开发区中压干管">
-                    <option value="唐太路北延线道路长林村段中压燃气管道">
-                    <option value="新民场环城路干管、新民场环城干管一期">
-                    <option value="古城镇蜀汉南街中压燃气干管、古城镇蜀韵街中压燃气管线">
-                    <option value="古城水梨村中压燃气干管">
-                    <option value="新民场镇城区中压燃气主干管">
-                    <option value="新民场镇永盛村中压燃气干管">
-                    <option value="新民场镇花卉园规划区中压干管">
-                    <option value="古城中平村中压干管">
-                    <option value="古城中平村-花牌村中压燃气干管">
-                    <option value="古城八角村中压燃气干管">
-                    <option value="郫都区唐昌镇先锋村气源管道">
-                    <option value="唐昌镇福昌村工业园中压燃气干管">
-                    <option value="唐昌镇钓鱼村气源管线">
-                    <option value="唐昌镇战旗村唐宝路中压燃气干管">
-                    <option value="天星锦宁中压燃气管道">
-                    <option value="云凌草堂中压燃气管道">
-                    <option value="古城金德荣模具厂干管">
-                    <option value="古城蜀韵街至蓉晶公馆">
-                    <option value="古城邻城村新气站-蜀汉西路">
-                    <option value="古城尚河景小区至锦水河">
-                    <option value="古城金山角至金石门业">
-                    <option value="古城幼儿园干管">
-                    <option value="古城梓潼巷至荣华北巷">
-                    <option value="古城锦城家园干管">
-                    <option value="古城雄飞上院至元皓科技">
-                    <option value="唐昌镇战旗村吕家院子气源管道">
-                    <option value="新民场治平街">
-                    <option value="唐元沙西线口至新民场环城路口">
-                    <option value="唐元千夫村干管">
-                    <option value="唐昌西北路至西北村干管">
-                    <option value="唐昌平乐村干管至汇菇源干管">
-                    <option value="唐昌战旗香镜干管（唐昌镇战旗村沙西线战旗路口中压燃气管道工程）">
-                    <option value="战旗村调压柜至宏博文化">
-                    <option value="唐昌鸣凤一二五组干管">
-                    <option value="唐昌镇东西干道中压燃气干管">
-                    <option value="唐昌丁字街至建丰村幼儿园">
-                    <option value="唐昌先锋村干管（与彭温路平行）">
-                    <option value="四川蓉城第二绕城高速公路开发有限责任公司公共燃气工程">
-                    <option value="唐昌镇东街中压干管">
+                    
                 </datalist>
             </div>
             <div class="form-group">
                 <label>管道编号 <span class="match-hint" id="no-hint">✓ 已匹配</span></label>
                 <input type="text" name="pipeline_no" id="pipeline_no" placeholder="请输入管道编号" list="pipeline_numbers" autocomplete="off">
                 <datalist id="pipeline_numbers">
-                    <option value="5">
-                    <option value="7">
-                    <option value="8">
-                    <option value="9">
-                    <option value="10">
-                    <option value="14">
-                    <option value="15">
-                    <option value="17">
-                    <option value="18">
-                    <option value="19">
-                    <option value="20">
-                    <option value="21">
-                    <option value="26">
-                    <option value="27">
-                    <option value="28">
-                    <option value="29">
-                    <option value="32">
-                    <option value="33">
-                    <option value="34">
-                    <option value="47">
-                    <option value="48">
-                    <option value="49">
-                    <option value="52">
-                    <option value="53">
-                    <option value="61">
-                    <option value="62">
-                    <option value="63">
-                    <option value="64">
-                    <option value="65">
-                    <option value="66">
-                    <option value="67">
-                    <option value="68">
-                    <option value="69">
-                    <option value="71">
-                    <option value="72">
-                    <option value="73">
-                    <option value="74">
-                    <option value="75">
-                    <option value="76">
-                    <option value="77">
-                    <option value="78">
-                    <option value="80">
-                    <option value="83">
-                    <option value="86">
-                    <option value="22、23">
-                    <option value="24、25">
+                    
                 </datalist>
             </div>
             <div class="form-group">
@@ -1056,6 +966,31 @@
         const noHint = document.getElementById('no-hint');
         const nameHint = document.getElementById('name-hint');
 
+        // 页面加载时初始化管道名称-编号，日期
+        document.addEventListener('DOMContentLoaded', function() {
+            initDatalists();
+            document.getElementById('inspection_date').value = new Date().toISOString().split('T')[0];
+        });
+
+        // 初始化datalist选项 - 从pipelineData动态生成
+        function initDatalists() {
+            const nameList = document.getElementById('pipeline_names');
+            const noList = document.getElementById('pipeline_numbers');
+
+            // 填充管道名称选项
+            for (const name of Object.values(pipelineData)) {
+                const option = document.createElement('option');
+                option.value = name;
+                nameList.appendChild(option);
+            }
+
+            // 填充管道编号选项
+            for (const no of Object.keys(pipelineData)) {
+                const option = document.createElement('option');
+                option.value = no;
+                noList.appendChild(option);
+            }
+        }
         // 显示/隐藏匹配提示
         function showHint(element, show) {
             if (show) {
@@ -1131,12 +1066,7 @@
             }
         }
 
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 设置默认日期为今天
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('inspection_date').value = today;
-        });
+       
     </script>
 </body>
 </html>
