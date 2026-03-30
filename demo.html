@@ -1,0 +1,162 @@
+<!--示例插件声明：此插件仅供用户在二次开发时参考使用，我们不会对示例代码的可靠性和完整性作任何保障，有需要的用户可以根据此示例进行二次开发和完善。-->
+<!--本示例简单演示了如何在导出对象时，根据输入参数，修改对象经纬度数据。-->
+<OvObjConvPlugin>
+	<name>测试示例</name>
+	<mode>0</mode>
+	<type>
+		<ovkml>
+			<enabled>1</enabled>
+			<!--可根据需求自定义导出文件后缀名-->
+			<ext>kml</ext>
+		</ovkml>
+		<ovkmz>
+			<enabled>1</enabled>
+			<ext>kmz</ext>
+		</ovkmz>
+		<txt>
+			<enabled>1</enabled>
+			<ext>txt</ext>
+		</txt>
+		<csv>
+			<enabled>1</enabled>
+			<ext>csv</ext>
+		</csv>
+	</type>
+	<param>1</param>
+</OvObjConvPlugin>
+
+<script type="text/javascript">
+
+  	/*奥维对象类型说明*/
+	
+	/*文件夹类型*/
+	var OMAP_OBJ_TYPE_GROUP = 30;
+	/*标签类型*/
+	var OMAP_OBJ_TYPE_SIGN = 7;
+	/*轨迹类型*/
+	var OMAP_OBJ_TYPE_TRACK = 8;
+	/*图形类型*/
+	var OMAP_OBJ_TYPE_SHAPE = 13;
+	/*导航线路*/
+	var OMAP_OBJ_TYPE_DIR = 11;
+
+	var flat = 0;
+	var flng = 0;
+	
+	/* 
+	* 插件代码的执行入口函数,插件都必须包含此函数，请不要修改函数名称
+	*/
+	
+	function ov_change(mJson,strParam){
+		var bString = false;
+		if(typeof(mJson) == 'string'){
+			mJson=JSON.parse(mJson);
+			bString = true;
+		}
+		/*判断输入参数*/
+		if(typeof(strParam)!= 'undefined'){
+			if(strParam != ""){
+				var value = strParam.replace(',',' ').replace('，',' ').split(" ");
+				flng = parseFloat(value[0]);
+				flat = parseFloat(value[1]);
+				if(typeof(value[0]) == 'undefined'
+				|| typeof(value[1]) == 'undefined'
+				|| isNaN(flat)
+				|| isNaN(flng)
+				||flat<0.1
+				||flat>10
+				||flng<0.1
+				||flng>10){
+					return showErr(bString);
+				}
+			}else{
+				return showErr(bString);
+			}
+		}
+  		var object = mJson;
+		var iType = object.Type;
+				switch(iType){
+			case OMAP_OBJ_TYPE_GROUP:
+				object.Name = "文件夹名称";
+				break;
+			case OMAP_OBJ_TYPE_SIGN:
+				object.Name = "标签名称";
+				object.Comment = "标签备注";
+				break;
+			case OMAP_OBJ_TYPE_TRACK:
+				object.Name = "轨迹名称";
+				object.Comment = "轨迹备注";
+				break;
+			case OMAP_OBJ_TYPE_DIR:
+				break;
+			case OMAP_OBJ_TYPE_SHAPE:
+				object.Name = "图形名称";
+				object.Comment = "图形备注";
+		}
+  		mJson = ov_changeLatLng(object);
+		if(bString){
+			return JSON.stringify(mJson);
+		}else{
+			return mJson;
+		}
+  		
+	}
+	
+	/*自定义报错内容*/
+	function showErr(bString){
+		var newJson = new Object();
+		newJson.iRet = -1;
+		newJson.strErr = "参数格式错误,请输入正确经纬度纠偏参数范围0.1-10。\n例：0.2,0.2";
+		if(bString){
+			return JSON.stringify(newJson);
+		}else{
+			var json = JSON.stringify(newJson);
+			return JSON.parse(json);
+		}
+	}
+	
+	/*自定义经纬度纠偏计算*/
+	function ov_changeLatLng(object){
+  		var Detail = object.ObjectDetail;
+  		var iCoordType = Detail.Gcj02;
+  		var latlng;
+  		switch(object.Type){
+		case OMAP_OBJ_TYPE_SIGN:
+		
+
+			Detail.Lat = Detail.Lat - flat;
+			Detail.Lng = Detail.Lng- flng;
+			break;
+			
+		case OMAP_OBJ_TYPE_TRACK:
+		
+			latlng = Detail.Latlng;
+			var size = latlng.length;
+			for (var i = 0; i < size; i += 2) {
+			  latlng[i] = latlng[i] - flat ;
+			  latlng[i + 1] = latlng[i + 1] - flng;
+			}
+			Detail.latlng = latlng;
+			break;
+		
+		case OMAP_OBJ_TYPE_SHAPE:
+		
+			latlng = Detail.Latlng;
+			var size = latlng.length;
+			for (var i = 0; i < size; i += 2) {
+			  latlng[i] = latlng[i] - flat ;
+			  latlng[i + 1] = latlng[i + 1] - flng;
+			}
+			Detail.latlng = latlng;
+			break;
+				
+			}
+		if(flat != 0 || flng !=0){
+			object.ObjectDetail.Gcj02 = 1; 
+		}
+  		object.ObjectDetail = Detail;
+  		return object;
+	}
+		
+</script>       
+						
